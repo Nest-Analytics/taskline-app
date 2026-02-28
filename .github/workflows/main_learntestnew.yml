@@ -1,47 +1,67 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# 1) Workflow goal:
+# Build and deploy this repository to Azure Web App "learntestnew".
+# Azure action docs:
+# - Deploy action: https://github.com/Azure/webapps-deploy
+# - Azure Actions: https://github.com/Azure/actions
 
 name: Build and deploy Node.js app to Azure Web App - learntestnew
 
 on:
+  # 2) Auto-run this workflow whenever code is pushed to main.
   push:
     branches:
       - main
+  # 3) Also allow running manually from the GitHub Actions UI.
   workflow_dispatch:
 
 jobs:
+  # 4) Build job:
+  # - fetch source code
+  # - set Node version
+  # - upload files as artifact for deploy job
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read # required by actions/checkout
 
     steps:
+      # 4.1) Checkout repository files into the runner.
       - uses: actions/checkout@v4
 
+      # 4.2) Use Node.js 20.x for consistency with Azure runtime.
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
+      # 4.3) Package current workspace as an artifact named "node-app".
+      # Deploy job will download and publish this artifact.
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: .
 
+  # 5) Deploy job:
+  # - download artifact
+  # - login to Azure
+  # - deploy to production slot
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write # required for OIDC token exchange in azure/login
+      contents: read # read access to repository metadata
 
     steps:
+      # 5.1) Download the artifact produced by build job.
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
       
+      # 5.2) Authenticate to Azure using GitHub Secrets.
+      # These three values must exist in repo secrets.
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -49,6 +69,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2DF521731CB14941B7E2177FE350315D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CBABFB7EA69D4A6EB12E2FB7CDB4F1EF }}
 
+      # 5.3) Deploy downloaded package to Azure Web App:
+      # app-name = Web App resource name
+      # slot-name = deployment slot target
+      # package = artifact path to deploy
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
