@@ -1,7 +1,7 @@
 export const GAME_CONFIG = {
   width: 720,
   height: 420,
-  totalTimeSeconds: 70,
+  totalTimeSeconds: 120,
   playerSpeed: 380,
   playerWidth: 64,
   playerHeight: 18,

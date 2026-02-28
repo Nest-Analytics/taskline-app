@@ -14,7 +14,7 @@ export default function App() {
   const [theme, setTheme] = useState(APP.themeDefault), [paused, setPaused] = useState(false);
   const [showIntro, setShowIntro] = useState(() => localStorage.getItem("sd_intro_seen") !== "1");
   const [runs, setRuns] = useState(() => loadRuns());
-  const [hud, setHud] = useState({ score: 0, level: 1, lives: 3, time: 45, powerUp: "None", combo: 0, mode: "Normal", special: 0 });
+  const [hud, setHud] = useState({ score: 0, level: 1, lives: 3, time: GAME_CONFIG.totalTimeSeconds, powerUp: "None", combo: 0, mode: "Normal", special: 0 });
   const top = topRuns(runs);
   const best = top[0]?.score || 0;
 
