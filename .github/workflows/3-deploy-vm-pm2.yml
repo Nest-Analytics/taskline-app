@@ -10,7 +10,8 @@
 #   git clone https://github.com/YOUR_ORG/YOUR_REPO.git ~/your-app
 #   cd ~/your-app
 #   npm install
-#   pm2 start npm --name your-app -- run dev
+#   npm run build
+#   pm2 start npm --name your-app -- start
 #   pm2 save
 #   pm2 startup   ← run the command it prints out
 #
@@ -84,4 +85,5 @@ jobs:
             cd ${{ secrets.VM_APP_DIR }}
             git pull origin main
             npm install
-            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start npm --name ${{ secrets.PM2_APP_NAME }} -- run dev
+            npm run build
+            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start npm --name ${{ secrets.PM2_APP_NAME }} -- start
