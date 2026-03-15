@@ -34,6 +34,13 @@ PORT=8080 npm start
 
 `npm start` serves the built `dist/` app and binds to `process.env.PORT` (default `8080`), which works for Azure Web App, GCP, and AWS setups that inject a port.
 
+For Azure ZIP deploys on Linux, set:
+- startup command: `bash startup.sh`
+- app setting: `SCM_DO_BUILD_DURING_DEPLOYMENT=true`
+- runtime stack: Node 20 LTS or newer
+
+For Azure Windows App Service, keep `web.config` at the app root.
+
 ## App Env Variables
 
 Set these in your Web App environment settings:

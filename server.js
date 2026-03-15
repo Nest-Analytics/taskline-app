@@ -22,7 +22,8 @@ const appConfig = () => {
 };
 
 createServer(async (req, res) => {
-  const url = new URL(req.url || "/", `http://${req.headers.host}`);
+  const host = req.headers.host || "localhost";
+  const url = new URL(req.url || "/", `http://${host}`);
   if (url.pathname === "/app-config.js") {
     res.writeHead(200, { "Content-Type": MIME[".js"], "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", Pragma: "no-cache", Expires: "0" });
     res.end(appConfig());
