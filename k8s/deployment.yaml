@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasklineapp
+  labels:
+    app: tasklineapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tasklineapp
+  template:
+    metadata:
+      labels:
+        app: tasklineapp
+    spec:
+      containers:
+        - name: tasklineapp
+          image: acrtasklineapp.azurecr.io/tasklineapp:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
