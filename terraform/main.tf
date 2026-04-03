@@ -7,7 +7,7 @@ terraform {
   }
     backend "azurerm" {
     resource_group_name  = "storerg"
-    storage_account_name = "learnstorenew"
+    storage_account_name = "learnstorenew12"
     container_name       = "tfstate"
     key                  = "tasklineapp.terraform.tfstate"
   }
