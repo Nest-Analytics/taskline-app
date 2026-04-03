@@ -1,7 +1,7 @@
 variable "resource_group_name" {
   description = "Azure resource group name"
   type        = string
-  default     = "rg-tasklineapp"
+  default     = "learn-rg"
 }
 
 variable "location" {
@@ -13,7 +13,7 @@ variable "location" {
 variable "aks_cluster_name" {
   description = "AKS cluster name"
   type        = string
-  default     = "aks-tasklineapp"
+  default     = "aks-taskline-learn"
 }
 
 variable "node_count" {
