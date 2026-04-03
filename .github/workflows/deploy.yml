@@ -109,8 +109,8 @@ jobs:
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
-            --resource-group rg-tasklineapp \
-            --name aks-tasklineapp \
+            --resource-group learn-rg \
+            --name aks-taskline-learn \
             --overwrite-existing
 
       - name: Update image in deployment manifest
