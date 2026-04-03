@@ -52,6 +52,11 @@ resource "azurerm_kubernetes_cluster" "main" {
   identity {
     type = "SystemAssigned"
   }
+
+  # Inside azurerm_kubernetes_cluster add:
+  oms_agent {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  }
 }
 
 # Grant AKS permission to pull from ACR (only if ACR is being used)
@@ -62,3 +67,16 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
   scope                            = azurerm_container_registry.main[0].id
   skip_service_principal_aad_check = true
 }
+
+
+# Add to azurerm_kubernetes_cluster in terraform/main.tf
+
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "law-tasklineapp"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+
