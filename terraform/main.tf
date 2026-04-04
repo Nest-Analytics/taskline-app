@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 4.0"
     }
   }
     backend "azurerm" {
@@ -21,6 +21,8 @@ provider "azurerm" {
     }
   }
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
@@ -53,9 +55,9 @@ resource "azurerm_kubernetes_cluster" "main" {
     type = "SystemAssigned"
   }
 
-  # Inside azurerm_kubernetes_cluster add:
   oms_agent {
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+    log_analytics_workspace_id      = azurerm_log_analytics_workspace.main.id
+    msi_auth_for_monitoring_enabled = true
   }
 }
 
@@ -69,8 +71,6 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
 }
 
 
-# Add to azurerm_kubernetes_cluster in terraform/main.tf
-
 resource "azurerm_log_analytics_workspace" "main" {
   name                = "law-tasklineapp"
   location            = azurerm_resource_group.main.location
@@ -79,4 +79,33 @@ resource "azurerm_log_analytics_workspace" "main" {
   retention_in_days   = 30
 }
 
+# Key Vault
+resource "azurerm_key_vault" "main" {
+  name                = var.key_vault_name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 
+  # Soft delete: deleted secrets recoverable for 7 days
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  # Enable RBAC for access control (recommended over access policies)
+  rbac_authorization_enabled = true
+}
+
+# Grant the deployment service principal permission to manage secrets
+# (so Terraform and the pipeline can create secrets in Key Vault)
+resource "azurerm_role_assignment" "kv_sp_secrets_officer" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+# Grant AKS managed identity permission to READ secrets
+resource "azurerm_role_assignment" "kv_aks_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
+}

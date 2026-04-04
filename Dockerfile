@@ -22,6 +22,7 @@ RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server.js ./server.js
+COPY --from=build /app/logger.js ./logger.js
 
 EXPOSE 3000
 

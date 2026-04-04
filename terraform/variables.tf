@@ -27,3 +27,9 @@ variable "acr_name" {
   type        = string
   default     = ""
 }
+
+variable "key_vault_name" {
+  description = "Azure Key Vault name (must be globally unique across Azure)"
+  type        = string
+  default     = "kv-tasklineapp"
+}
