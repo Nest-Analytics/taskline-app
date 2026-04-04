@@ -135,4 +135,3 @@ resource "azurerm_role_assignment" "kv_aks_secrets_user" {
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
 }
-
