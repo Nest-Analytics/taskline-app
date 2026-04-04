@@ -1,3 +1,9 @@
+# Terraform
+terraform/terraform.tfvars
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+
 node_modules
 dist
 .DS_Store

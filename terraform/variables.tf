@@ -33,3 +33,21 @@ variable "key_vault_name" {
   type        = string
   default     = "kv-tasklineapp"
 }
+
+variable "app_password" {
+  description = "User password for Taskline"
+  type        = string
+  sensitive   = true # Terraform will never print this value in logs
+}
+
+variable "app_username" {
+  description = "User username for Taskline"
+  type        = string
+  sensitive   = true
+}
+
+variable "api_key" {
+  description = "API Key for dummy"
+  type = string
+  sensitive = true
+}

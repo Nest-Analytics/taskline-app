@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: devPort,
-    strictPort: true,
+    proxy: {
+      "/login": "http://localhost:5000",
+      "/logout": "http://localhost:5000",
+      "/api": "http://localhost:5000",
+    },
   },
 });

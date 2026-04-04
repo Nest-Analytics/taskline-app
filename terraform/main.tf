@@ -95,6 +95,32 @@ resource "azurerm_key_vault" "main" {
   rbac_authorization_enabled = true
 }
 
+# Store secrets in Key Vault
+resource "azurerm_key_vault_secret" "app_password" {
+  name         = "APP-PASSWORD"
+  value        = var.app_password
+  key_vault_id = azurerm_key_vault.main.id
+
+  depends_on = [azurerm_role_assignment.kv_sp_secrets_officer]
+}
+
+resource "azurerm_key_vault_secret" "api_key" {
+  name         = "API-KEY"
+  value        = var.api_key
+  key_vault_id = azurerm_key_vault.main.id
+
+  depends_on = [azurerm_role_assignment.kv_sp_secrets_officer]
+}
+
+resource "azurerm_key_vault_secret" "app_username" {
+  name         = "APP-USERNAME"
+  value        = var.app_username
+  key_vault_id = azurerm_key_vault.main.id
+
+  depends_on = [azurerm_role_assignment.kv_sp_secrets_officer]
+  
+}
+
 # Grant the deployment service principal permission to manage secrets
 # (so Terraform and the pipeline can create secrets in Key Vault)
 resource "azurerm_role_assignment" "kv_sp_secrets_officer" {

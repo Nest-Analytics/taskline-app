@@ -1,25 +1,51 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import TaskComposer from "./TaskComposer.jsx";
 
-export default function NewTaskModal({
-  isOpen,
-  composer,
+export default function EditTaskModal({
+  item,
   categoryOptions,
   bucketOptions,
-  onComposerChange,
+  onUpdateItem,
   onClose,
-  onSubmit,
 }) {
+  const [draft, setDraft] = useState(null);
+
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (item) {
+      setDraft({
+        text: item.text,
+        category: item.category,
+        due: item.due,
+        bucket: item.bucket,
+        flagged: item.flagged,
+      });
+    }
+  }, [item]);
+
+  useEffect(() => {
+    if (!item) return undefined;
     function handleKeyDown(e) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [item, onClose]);
 
-  if (!isOpen) return null;
+  if (!item || !draft) return null;
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const text = draft.text.trim();
+    if (!text) return;
+    onUpdateItem(item.id, {
+      text,
+      category: draft.category,
+      due: draft.due.trim(),
+      bucket: draft.bucket,
+      flagged: draft.flagged,
+    });
+    onClose();
+  }
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/35 px-4">
@@ -32,10 +58,10 @@ export default function NewTaskModal({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-[1.15rem] font-semibold text-slate-950">
-              New task
+              Edit task
             </h3>
             <p className="mt-1 text-[13px] text-slate-500">
-              Fill in the details and hit Save task.
+              Update the task details below.
             </p>
           </div>
           <button
@@ -47,11 +73,11 @@ export default function NewTaskModal({
           </button>
         </div>
         <TaskComposer
-          composer={composer}
+          composer={draft}
           categoryOptions={categoryOptions}
           bucketOptions={bucketOptions}
-          onComposerChange={onComposerChange}
-          onSubmit={onSubmit}
+          onComposerChange={setDraft}
+          onSubmit={handleSubmit}
           compact={false}
         />
       </section>

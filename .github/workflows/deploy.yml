@@ -90,6 +90,12 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      APP_TITLE: ${{ vars.APP_TITLE }}
+      VITE_APP_TITLE: ${{ vars.VITE_APP_TITLE }}
+      PORT: ${{ vars.PORT }}
+      APP_USERNAME: ${{ secrets.APP_USERNAME }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+      API: ${{ secrets.API }}
 
     steps:
       - name: Checkout code
@@ -117,6 +123,17 @@ jobs:
         run: |
           sed -i "s|YOUR_REGISTRY_PATH:v1|${{ needs.build-and-push.outputs.image_tag }}|g" \
             k8s/aks/deployment.yaml
+
+      - name: Create or update Kubernetes secret
+        run: |
+          kubectl create secret generic taskline-secrets \
+            --from-literal=APP_TITLE="${APP_TITLE:-Taskline}" \
+            --from-literal=APP_USERNAME="${APP_USERNAME}" \
+            --from-literal=APP_PASSWORD="${APP_PASSWORD}" \
+            --from-literal=API="${API}" \
+            --from-literal=VITE_APP_TITLE="${VITE_APP_TITLE:-Taskline}" \
+            --from-literal=PORT="${PORT:-3000}" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply Kubernetes manifests
         run: |
