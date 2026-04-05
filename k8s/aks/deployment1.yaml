@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasklineapp
+  labels:
+    app: tasklineapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tasklineapp
+  template:
+    metadata:
+      labels:
+        app: tasklineapp
+    spec:
+      containers:
+        - name: tasklineapp
+          # Use the image reference from your Exercise 2 registry:
+          # ACR:        acrtasklineapp.azurecr.io/tasklineapp:v1
+          # GHCR:       ghcr.io/YOUR_USERNAME/tasklineapp:v1
+          # Docker Hub: YOUR_USERNAME/tasklineapp:v1
+          image: YOUR_REGISTRY_PATH:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: APP_TITLE
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_TITLE
+            - name: APP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_USERNAME
+            - name: APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_PASSWORD
+            - name: API
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: API
+            - name: VITE_APP_TITLE
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: VITE_APP_TITLE
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: PORT
+          volumeMounts:
+            - name: taskline-secrets-volume
+              mountPath: /etc/secrets
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+      volumes:
+        - name: taskline-secrets-volume
+          secret:
+            secretName: taskline-secrets

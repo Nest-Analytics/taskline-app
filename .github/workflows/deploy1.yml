@@ -1,0 +1,157 @@
+# name: Build, Push, Provision and Deploy
+
+
+# jobs:
+
+#   # ── JOB 1: Build and push the Docker image ──────────────────────────────────
+#   build-and-push:
+#     name: Build and Push Image
+#     runs-on: ubuntu-latest
+
+#     outputs:
+#       image_tag: ${{ steps.tag.outputs.image_tag }}
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       # --- GHCR login (use this block if using GHCR) ---
+#       - name: Log in to GHCR
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ghcr.io
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GHCR_TOKEN }}
+
+#     #   - name: Generate image tag
+#     #     id: tag
+#     #     run: |
+#     #       ghcr.io/hellosanmi/tasklineapp
+#     #       IMAGE_TAG="ghcr.io/hellosanmi/tasklineapp:${{ github.sha }}"
+#     #       echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+#       - name: Generate image tag
+#         id: tag
+#         run: |
+#           IMAGE_TAG="ghcr.io/hellosanmi/tasklineapp:${{ github.sha }}"
+#           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+#       - name: Build and push image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           push: true
+#           tags: ${{ steps.tag.outputs.image_tag }}
+#           platforms: linux/amd64
+
+#   # ── JOB 2: Provision infrastructure with Terraform ──────────────────────────
+#   terraform:
+#     name: Provision AKS with Terraform
+#     runs-on: ubuntu-latest
+#     needs: build-and-push
+
+#     env:
+#       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+#       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+#       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+#       TF_VAR_app_username: ${{ secrets.APP_USERNAME }}
+#       TF_VAR_app_password: ${{ secrets.APP_PASSWORD }}
+#       TF_VAR_api_key: ${{ secrets.API }}
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Set up Terraform
+#         uses: hashicorp/setup-terraform@v3
+
+#       - name: Terraform Init
+#         working-directory: terraform
+#         run: terraform init -input=false
+
+#       - name: Terraform Plan
+#         working-directory: terraform
+#         run: terraform plan -input=false -out=tfplan
+
+#       - name: Terraform Apply
+#         working-directory: terraform
+#         run: terraform apply -input=false -auto-approve tfplan
+
+#   # ── JOB 3: Deploy manifests to AKS ──────────────────────────────────────────
+#   deploy:
+#     name: Deploy to AKS
+#     runs-on: ubuntu-latest
+#     needs: [build-and-push, terraform]
+
+#     env:
+#       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+#       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+#       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+#       APP_TITLE: ${{ vars.APP_TITLE }}
+#       VITE_APP_TITLE: ${{ vars.VITE_APP_TITLE }}
+#       PORT: ${{ vars.PORT }}
+#       APP_USERNAME: ${{ secrets.APP_USERNAME }}
+#       APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+#       API: ${{ secrets.API }}
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Log in to Azure
+#         uses: azure/login@v1
+#         with:
+#           creds: >-
+#             {
+#               "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+#               "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+#               "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+#               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+#             }
+
+#       - name: Get AKS credentials
+#         run: |
+#           az aks get-credentials \
+#             --resource-group learn-rg \
+#             --name aks-taskline-learn \
+#             --overwrite-existing
+
+#       - name: Update image in deployment manifest
+#         run: |
+#           sed -i "s|YOUR_REGISTRY_PATH:v1|${{ needs.build-and-push.outputs.image_tag }}|g" \
+#             k8s/aks/deployment.yaml
+
+#       - name: Create or update Kubernetes secret
+#         run: |
+#           kubectl create secret generic taskline-secrets \
+#             --from-literal=APP_TITLE="${APP_TITLE:-Taskline}" \
+#             --from-literal=APP_USERNAME="${APP_USERNAME}" \
+#             --from-literal=APP_PASSWORD="${APP_PASSWORD}" \
+#             --from-literal=API="${API}" \
+#             --from-literal=VITE_APP_TITLE="${VITE_APP_TITLE:-Taskline}" \
+#             --from-literal=PORT="${PORT:-3000}" \
+#             --dry-run=client -o yaml | kubectl apply -f -
+
+#       - name: Apply Kubernetes manifests
+#         run: |
+#           kubectl apply -f k8s/aks/deployment.yaml
+#           kubectl apply -f k8s/aks/service.yaml
+
+#       - name: Wait for rollout
+#         run: kubectl rollout status deployment/tasklineapp --timeout=120s
+
+#       - name: Get external IP
+#         run: |
+#           echo "Waiting for external IP..."
+#           for i in {1..20}; do
+#             IP=$(kubectl get svc tasklineapp-service \
+#               -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+#             if [ -n "$IP" ]; then
+#               echo "App is live at: http://${IP}"
+#               break
+#             fi
+#             echo "Still waiting... (${i}/20)"
+#             sleep 15
+#           done
