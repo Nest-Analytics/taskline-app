@@ -85,7 +85,7 @@ jobs:
           terraform init \
             -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=tfstate1" \
+            -backend-config="container_name=tfstate" \
             -backend-config="key=tasklineapp.terraform.tfstate"
 
       - name: Terraform Plan
