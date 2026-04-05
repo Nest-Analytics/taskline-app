@@ -45,6 +45,10 @@ jobs:
       - name: Generate image tag
         id: tag
         run: |
+          # REGISTRY_PATH is a GitHub Variable — set it to your full image path prefix:
+          # GHCR:       ghcr.io/YOUR_GITHUB_USERNAME/tasklineapp
+          # Docker Hub: YOUR_DOCKERHUB_USERNAME/tasklineapp
+          # ACR:        acrtasklineapp.azurecr.io/tasklineapp
           IMAGE_TAG="${{ vars.REGISTRY_PATH }}:${{ github.sha }}"
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
@@ -67,10 +71,14 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      # TF_VAR_* are picked up automatically as Terraform variable values
       TF_VAR_resource_group_name: ${{ vars.TF_VAR_resource_group_name }}
       TF_VAR_location: ${{ vars.TF_VAR_location }}
       TF_VAR_aks_cluster_name: ${{ vars.TF_VAR_aks_cluster_name }}
-      TF_VAR_acr_name: ${{ vars.TF_VAR_acr_name }}
+      TF_VAR_key_vault_name: ${{ vars.TF_VAR_key_vault_name }}
+      TF_VAR_app_username: ${{ secrets.APP_USERNAME }}
+      TF_VAR_app_password: ${{ secrets.APP_PASSWORD }}
+      TF_VAR_api_key: ${{ secrets.API }}
 
     steps:
       - name: Checkout code
@@ -82,19 +90,20 @@ jobs:
       - name: Terraform Init
         working-directory: terraform
         run: |
-          terraform init \
+          # All backend details come from GitHub Secrets — nothing hardcoded
+          terraform init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=tfstate" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
             -backend-config="key=tasklineapp.terraform.tfstate"
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve tfplan
 
   # ── JOB 3: Deploy manifests to AKS ──────────────────────────────────────────
   deploy:
@@ -119,6 +128,7 @@ jobs:
 
       - name: Get AKS credentials
         run: |
+          # Resource group and cluster name come from GitHub Variables — no hardcoding
           az aks get-credentials \
             --resource-group ${{ vars.TF_VAR_resource_group_name }} \
             --name ${{ vars.TF_VAR_aks_cluster_name }} \
@@ -135,8 +145,22 @@ jobs:
 
       - name: Update image in deployment manifest
         run: |
+          # Replace placeholder with the real SHA-tagged image from Job 1
           sed -i "s|REGISTRY_IMAGE_PLACEHOLDER|${{ needs.build-and-push.outputs.image_tag }}|g" \
             k8s/aks/deployment.yaml
+
+      - name: Create or update Kubernetes secret
+        run: |
+          # Values come from GitHub Secrets and Variables — nothing hardcoded
+          # Idempotent — safe to run on every push
+          kubectl create secret generic taskline-secrets \
+            --from-literal=APP_TITLE="${{ vars.APP_TITLE }}" \
+            --from-literal=APP_USERNAME="${{ secrets.APP_USERNAME }}" \
+            --from-literal=APP_PASSWORD="${{ secrets.APP_PASSWORD }}" \
+            --from-literal=API="${{ secrets.API }}" \
+            --from-literal=VITE_APP_TITLE="${{ vars.VITE_APP_TITLE }}" \
+            --from-literal=PORT="${{ vars.PORT }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply Kubernetes manifests
         run: |

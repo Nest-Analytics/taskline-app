@@ -5,7 +5,7 @@ metadata:
   labels:
     app: tasklineapp
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: tasklineapp
@@ -15,7 +15,7 @@ spec:
         app: tasklineapp
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: ghcr-secret    # only needed if using GHCR — pipeline creates this conditionally
       containers:
         - name: tasklineapp
           # Placeholder — replaced by the pipeline sed command at deploy time
@@ -23,6 +23,41 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
+          env:
+            - name: APP_TITLE
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_TITLE
+            - name: APP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_USERNAME
+            - name: APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: APP_PASSWORD
+            - name: API
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: API
+            - name: VITE_APP_TITLE
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: VITE_APP_TITLE
+            - name: PORT
+              valueFrom:
+                secretKeyRef:
+                  name: taskline-secrets
+                  key: PORT
+          volumeMounts:
+            - name: taskline-secrets-volume
+              mountPath: /etc/secrets
+              readOnly: true
           resources:
             requests:
               cpu: "100m"
@@ -30,3 +65,7 @@ spec:
             limits:
               cpu: "250m"
               memory: "256Mi"
+      volumes:
+        - name: taskline-secrets-volume
+          secret:
+            secretName: taskline-secrets
