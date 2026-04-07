@@ -3,6 +3,9 @@ terraform/terraform.tfvars
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.backup
+terraform/*
+Dockerfile
+.github/*
 
 node_modules
 dist
