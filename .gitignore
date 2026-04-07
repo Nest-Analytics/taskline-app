@@ -1,40 +1,30 @@
-# Terraform
-terraform/terraform.tfvars
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.backup
-
-# --- Docker / Build ---
-Dockerfile
-.dockerignore
-.docker
-
-.github/workflows/
-k8s/
-terraform/
-
-node_modules
-dist
-.DS_Store
+# --- Node.js / App ---
+node_modules/
+dist/
 .env
 .env.example
 .codex/
 .claude/
 
+# --- Docker / Build ---
+Dockerfile
+.dockerignore
+.docker/
+
+# --- Infrastructure / Cloud ---
+.github/workflows/
+k8s/
+terraform/
 deploy/
 web.config
 startup.sh
 
-# --- Infrastructure (As requested) ---
-.github/workflows/
-k8s/
-terraform/
-
-# --- Terraform Specifics (Hidden files) ---
+# --- Terraform Specifics (Hidden & State) ---
+# This ensures even files outside the /terraform folder are caught
 .terraform/
+.terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
-.terraform.lock.hcl
 *.tfvars
 *.tfvars.json
 
