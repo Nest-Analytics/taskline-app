@@ -7,15 +7,15 @@ dist/
 .claude/
 
 # --- Docker / Build ---
-Dockerfile
+# Dockerfile
 .dockerignore
 .docker/
 
 # --- Infrastructure / Cloud ---
-.github/workflows/
-k8s/
-terraform/
-deploy/
+# .github/workflows/
+# k8s/
+# terraform/
+# deploy/
 web.config
 startup.sh
 
@@ -38,3 +38,4 @@ kubeconfig
 .vscode/
 .idea/
 Thumbs.db
+
