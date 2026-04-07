@@ -2,11 +2,13 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 4.0"
     }
   }
 
-  # Empty — connection details passed via -backend-config flags at terraform init
+  # Backend block is intentionally empty here.
+  # Connection details are passed via -backend-config flags at terraform init.
+  # See Part 4 (local) and the pipeline workflow (Exercise 3) for how this works.
   backend "azurerm" {}
 }
 
@@ -18,9 +20,19 @@ provider "azurerm" {
   }
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
   location = var.location
+}
+
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "law-tasklineapp"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_container_registry" "main" {
@@ -46,6 +58,11 @@ resource "azurerm_kubernetes_cluster" "main" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  oms_agent {
+    log_analytics_workspace_id      = azurerm_log_analytics_workspace.main.id
+    msi_auth_for_monitoring_enabled = true
   }
 }
 
