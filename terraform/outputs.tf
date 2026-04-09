@@ -12,3 +12,4 @@ output "acr_login_server" {
   description = "ACR login server (N/A if not using ACR)"
   value       = var.acr_name != "" ? azurerm_container_registry.main[0].login_server : "N/A"
 }
+
