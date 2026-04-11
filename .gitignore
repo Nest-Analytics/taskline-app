@@ -18,6 +18,7 @@ dist/
 # deploy/
 web.config
 startup.sh
+k8s/local/*
 
 # --- Terraform Specifics (Hidden & State) ---
 # This ensures even files outside the /terraform folder are caught

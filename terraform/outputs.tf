@@ -13,3 +13,8 @@ output "acr_login_server" {
   value       = var.acr_name != "" ? azurerm_container_registry.main[0].login_server : "N/A"
 }
 
+output "application_insights_connection_string" {
+  description = "Application Insights connection string for app telemetry"
+  value       = azurerm_application_insights.main.connection_string
+  sensitive   = true
+}

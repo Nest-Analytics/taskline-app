@@ -5,7 +5,7 @@ metadata:
   labels:
     app: tasklineapp
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: tasklineapp
@@ -20,37 +20,6 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 3000
-          env:
-            - name: APP_TITLE
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: APP_TITLE
-            - name: APP_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: APP_USERNAME
-            - name: APP_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: APP_PASSWORD
-            - name: API
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: API
-            - name: VITE_APP_TITLE
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: VITE_APP_TITLE
-            - name: PORT
-              valueFrom:
-                secretKeyRef:
-                  name: taskline-secrets
-                  key: PORT
           volumeMounts:
             - name: taskline-secrets-volume
               mountPath: /etc/secrets
@@ -58,11 +27,12 @@ spec:
           resources:
             requests:
               cpu: "100m"
-              memory: "128Mi"
+              memory: "256Mi"
             limits:
               cpu: "250m"
-              memory: "256Mi"
+              memory: "512Mi"
       volumes:
         - name: taskline-secrets-volume
           secret:
             secretName: taskline-secrets
+

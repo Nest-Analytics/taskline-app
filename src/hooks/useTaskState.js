@@ -16,6 +16,7 @@ const randomUUID = () =>
       });
 
 const makeNote = (label, value) => ({ id: randomUUID(), label, value });
+const isServerBackedTask = (id) => typeof id === "string" && id.startsWith("t_");
 
 function loadItems() {
   if (typeof window === "undefined") return STARTER_TASKS;
@@ -61,18 +62,44 @@ export default function useTaskState() {
     setUnreadCount((c) => c + 1);
   }
 
-  function addItem(data) {
-    setItems((c) => [{ id: randomUUID(), done: false, ...data }, ...c]);
+  async function addItem(data) {
+    let id = randomUUID();
+    try {
+      const res = await fetch("/api/demo/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: data.text }),
+      });
+      if (res.ok) {
+        const task = await res.json();
+        id = task.id;
+      }
+    } catch {
+      // Fall back to local-only task ids when the demo API is unavailable.
+    }
+    setItems((c) => [{ id, done: false, ...data }, ...c]);
     push("Task created", `"${data.text}" was added to ${data.bucket}.`);
   }
 
-  function toggleItem(id) {
+  async function toggleItem(id) {
+    const current = items.find((item) => item.id === id);
+    if (!current) return;
+    const next = !current.done;
     setItems((c) => c.map((item) => {
       if (item.id !== id) return item;
-      const next = !item.done;
       push(next ? "Task completed" : "Task reopened", `"${item.text}" is now ${next ? "done" : "active"}.`);
       return { ...item, done: next };
     }));
+    if (!isServerBackedTask(id)) return;
+    try {
+      await fetch(`/api/demo/tasks/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next ? "done" : "open" }),
+      });
+    } catch {
+      push("Sync delayed", `"${current.text}" changed locally but the demo API did not respond.`);
+    }
   }
 
   function toggleFlag(id) {

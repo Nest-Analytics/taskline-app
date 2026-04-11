@@ -35,6 +35,16 @@ resource "azurerm_log_analytics_workspace" "main" {
   retention_in_days   = 30
 }
 
+# Application Insights captures app-level telemetry such as requests, traces,
+# exceptions, and dependencies. It complements Container Insights on AKS.
+resource "azurerm_application_insights" "main" {
+  name                = "appi-tasklineapp"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.main.id
+}
+
 resource "azurerm_container_registry" "main" {
   count               = var.acr_name != "" ? 1 : 0
   name                = var.acr_name

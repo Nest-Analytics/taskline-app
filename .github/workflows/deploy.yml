@@ -160,6 +160,7 @@ jobs:
             --from-literal=API="${{ secrets.API }}" \
             --from-literal=VITE_APP_TITLE="${{ vars.VITE_APP_TITLE }}" \
             --from-literal=PORT="${{ vars.PORT }}" \
+            --from-literal=APPINSIGHTS_CONNECTION_STRING="${{ secrets.APPINSIGHTS_CONNECTION_STRING }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply Kubernetes manifests

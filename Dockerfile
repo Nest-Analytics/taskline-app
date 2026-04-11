@@ -23,6 +23,9 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server.js ./server.js
 COPY --from=build /app/logger.js ./logger.js
+COPY --from=build /app/metrics.js ./metrics.js
+COPY --from=build /app/runtime-values.js ./runtime-values.js
+COPY --from=build /app/appinsights.js ./appinsights.js
 
 EXPOSE 3000
 
