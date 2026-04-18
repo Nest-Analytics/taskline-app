@@ -114,6 +114,7 @@ Terraform owns every secret:
 - `TF_VAR_aks_cluster_name`
 - `TF_VAR_aks_dns_prefix` optional
 - `TF_VAR_aks_default_node_pool_name` optional
+- `TF_VAR_aks_default_node_pool_vm_size` optional
 - `TF_VAR_key_vault_name`
 - `TF_VAR_log_analytics_workspace_name`
 - `TF_VAR_application_insights_name`

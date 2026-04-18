@@ -1,7 +1,6 @@
 variable "resource_group_name" {
   description = "Azure resource group name"
   type        = string
-  default     = "learn-rg"
 }
 
 variable "location" {
@@ -13,25 +12,22 @@ variable "location" {
 variable "aks_cluster_name" {
   description = "AKS cluster name"
   type        = string
-  default     = "aks-taskline-learn"
 }
 
 variable "node_count" {
   description = "Number of AKS nodes"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "log_analytics_workspace_name" {
   description = "Log Analytics workspace name"
   type        = string
-  default     = "law-tasklineapp"
 }
 
 variable "application_insights_name" {
   description = "Application Insights resource name"
   type        = string
-  default     = "appi-tasklineapp"
 }
 
 variable "acr_name" {
@@ -43,7 +39,6 @@ variable "acr_name" {
 variable "key_vault_name" {
   description = "Azure Key Vault name (must be globally unique across Azure)"
   type        = string
-  default     = "kv-tasklineapp"
 }
 
 variable "api_key" {
@@ -55,19 +50,16 @@ variable "api_key" {
 variable "postgres_server_name" {
   description = "Azure Database for PostgreSQL Flexible Server name"
   type        = string
-  default     = "psql-taskline-learn"
 }
 
 variable "postgres_database_name" {
   description = "Primary PostgreSQL database name"
   type        = string
-  default     = "taskline"
 }
 
 variable "postgres_admin_username" {
   description = "PostgreSQL administrator username"
   type        = string
-  default     = "tasklineadmin"
 }
 
 variable "postgres_admin_password" {
@@ -92,6 +84,12 @@ variable "aks_default_node_pool_name" {
   description = "AKS default node pool name"
   type        = string
   default     = "default"
+}
+
+variable "aks_default_node_pool_vm_size" {
+  description = "AKS default node pool VM size"
+  type        = string
+  default     = "Standard_B2s"
 }
 
 variable "app_title" {
