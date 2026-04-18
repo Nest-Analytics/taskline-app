@@ -1,43 +1,44 @@
-# --- Node.js / App ---
-node_modules/
-dist/
+# --- Environment / Local secrets ---
 .env
-.env.example
-.codex/
-.claude/
+.env.*
+!.env.example
 
-# --- Docker / Build ---
-# Dockerfile
-.dockerignore
-.docker/
+# --- Dependencies ---
+node_modules/
+backend/node_modules/
+frontend/node_modules/
 
-# --- Infrastructure / Cloud ---
-# .github/workflows/
-# k8s/
-# terraform/
-# deploy/
-web.config
-startup.sh
-# k8s/acr/*
-# k8s/aks/*
+# --- Build output ---
+dist/
+frontend/dist/
+coverage/
 
-# --- Terraform Specifics (Hidden & State) ---
-# This ensures even files outside the /terraform folder are caught
+# --- Terraform local state ---
 .terraform/
-.terraform.lock.hcl
+backend/terraform/.terraform/
+frontend/terraform/.terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
 *.tfvars
 *.tfvars.json
 
-# --- Kubernetes / Minikube ---
+# --- Local Kubernetes / generated files ---
 .kube/
 kubeconfig
 *.generated.yaml
 
-# --- OS / IDE ---
+# --- Tooling / local agent state ---
+.codex/
+.claude/
+
+# --- OS / editor files ---
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
-Thumbs.db
 
+# --- Misc local logs / caches ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/

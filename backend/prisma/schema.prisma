@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskBucket {
+  inbox
+  today
+  upcoming
+  done
+}
+
+enum TaskHistoryAction {
+  created
+  updated
+  status_changed
+  flagged
+  unflagged
+  deleted
+  cleared_completed
+  restored_demo
+}
+
+model User {
+  id              String        @id @default(cuid())
+  firstName       String
+  lastName        String
+  username        String        @unique
+  email           String        @unique
+  passwordHash    String
+  workspaceName   String
+  ownerName       String
+  defaultCategory String
+  defaultBucket   TaskBucket
+  defaultDue      String
+  // User-editable "projects" list (categories in data terms). Stored as JSON
+  // so we can keep ordering without introducing a relation just for a flat list.
+  projects        Json          @default("[\"General\",\"Marketing\",\"Website Redesign\",\"Sales\",\"Product\",\"Q4 Planning\",\"Engineering\"]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  sessions        Session[]
+  tasks           Task[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  userId     String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Task {
+  id         String        @id @default(cuid())
+  text       String
+  category   String
+  due        String
+  bucket     TaskBucket
+  flagged    Boolean       @default(false)
+  done       Boolean       @default(false)
+  deletedAt  DateTime?
+  userId     String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history    TaskHistory[]
+
+  @@index([userId, bucket])
+  @@index([userId, done])
+  @@index([userId, deletedAt])
+}
+
+model TaskHistory {
+  id             String            @id @default(cuid())
+  taskId         String
+  action         TaskHistoryAction
+  previousStatus String?
+  newStatus      String?
+  summary        String
+  createdAt      DateTime          @default(now())
+  task           Task              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+}

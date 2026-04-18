@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskline-frontend-config
+data:
+  app-config.js: |
+    window.__APP_CONFIG__ = {
+      appTitle: "APP_TITLE_PLACEHOLDER",
+      apiBaseUrl: ""
+    };

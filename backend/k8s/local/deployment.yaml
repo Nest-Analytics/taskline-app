@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskline-backend
+  labels:
+    app: taskline-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskline-backend
+  template:
+    metadata:
+      labels:
+        app: taskline-backend
+    spec:
+      initContainers:
+        - name: taskline-migrate
+          image: taskline-backend:latest
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - npx prisma migrate deploy --schema prisma/schema.prisma
+          envFrom:
+            - secretRef:
+                name: taskline-backend-secrets
+          volumeMounts:
+            - name: taskline-secrets-volume
+              mountPath: /etc/secrets
+              readOnly: true
+      containers:
+        - name: taskline-backend
+          image: taskline-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: taskline-backend-secrets
+          volumeMounts:
+            - name: taskline-secrets-volume
+              mountPath: /etc/secrets
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "250m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: taskline-secrets-volume
+          secret:
+            secretName: taskline-backend-secrets

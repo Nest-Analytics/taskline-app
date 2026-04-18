@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: taskline-postgres-secret
+type: Opaque
+stringData:
+  POSTGRES_DB: taskline
+  POSTGRES_USER: taskline
+  POSTGRES_PASSWORD: taskline
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskline-postgres
+  labels:
+    app: taskline-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskline-postgres
+  template:
+    metadata:
+      labels:
+        app: taskline-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-bookworm
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: taskline-postgres-secret
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskline-postgres
+spec:
+  selector:
+    app: taskline-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
