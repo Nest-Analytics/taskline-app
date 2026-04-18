@@ -76,14 +76,14 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "azure_services" {
   end_ip_address   = "0.0.0.0"
 }
 
-# resource "azurerm_container_registry" "main" {
-#   count               = var.acr_name != "" ? 1 : 0
-#   name                = var.acr_name
-#   resource_group_name = azurerm_resource_group.main.name
-#   location            = azurerm_resource_group.main.location
-#   sku                 = "Basic"
-#   admin_enabled       = false
-# }
+resource "azurerm_container_registry" "main" {
+  count               = var.acr_name != "" ? 1 : 0
+  name                = var.acr_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  sku                 = "Basic"
+  admin_enabled       = false
+}
 
 resource "azurerm_kubernetes_cluster" "main" {
   name                = var.aks_cluster_name
