@@ -45,7 +45,6 @@ By default, local dev proxies:
 
 to `http://localhost:5000`
 
-
 ## Local Kubernetes
 
 Files:
