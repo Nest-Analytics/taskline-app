@@ -42,3 +42,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cache/
+
+
+# --- Files I dont want in project repo ---
+.github/
+backend/k8s/
+frontend/k8s/
+backend/terraform/
+frontend/terraform/
+
+deploy/
+
